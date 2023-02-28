@@ -2,6 +2,32 @@
 
 <div>
 
+function getrecord(uint _rid) public view checkpe(msg.sender) recexist(msg.
+
+sender , _rid) returns(address _d , uint256 adm , uint256 dis , string memory pres , string memory bill){ return ( patient_list[msg.sender ]. recordlist[_rid ].doctor , patient_list[msg.sender ]. recordlist[_rid ]. admissionDate , patient_list[msg.sender ]. recordlist[_rid ]. dischargeDate , patient_list[msg.sender ]. recordlist[_rid ].pres , patient_list[msg.sender ]. recordlist[_rid ]. bill
+
+);
+
+} function getrecordnum () public view checkpe(msg.sender) returns(uint256
+
+_rid){
+
+return patient_list[msg.sender ]. recn; } function triggerpayment(address _b) public payable {
+
+(bool status ,)=_b.call{value:msg.value }(" " );
+
+require(status ," Transaction Unsucessful" );
+
+} function allowph (address _b , uint256 _rid) public recexist(msg.sender , _rid ){ permlist[msg.sender ][_b]. recid=_rid; permlist[msg.sender ][_b].all=true;
+
+} function allowi (address _b , uint256 _rid) public allowins(msg.sender){
+
+ilist[msg.sender ][_b]= _rid;
+
+insurancec_list [_b]. flagraised[msg.sender ]= true; } function getdoctor(address _d) public view checkde(_d) returns(string memory
+
+_name , address _hospital , string memory _spec) { return( doctor_list[_d].name , doctor_list[_d].hos , doctor_list[_d]. spec
+
 [![Build Status](https://travis-ci.org/NFhbar/Ethereum-Medical-Records.png?branch=master)](https://travis-ci.org/NFhbar/Ethereum-Medical-Records)
 [![Coverage Status](https://coveralls.io/repos/github/NFhbar/Ethereum-Medical-Records/badge.svg?branch=master)](https://coveralls.io/github/NFhbar/Ethereum-Medical-Records?branch=master)
 [![NSP Status](https://nodesecurity.io/orgs/nicolas-frega/projects/55baa4ae-3179-40b3-841d-a0388baf15b2/badge)](https://nodesecurity.io/orgs/nicolas-frega/projects/55baa4ae-3179-40b3-841d-a0388baf15b2)
