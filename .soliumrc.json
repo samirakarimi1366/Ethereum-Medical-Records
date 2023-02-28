@@ -1,10 +1,153 @@
-{
-  "extends": "solium:recommended",
-  "plugins": ["security"],
-  "rules": {
-    "array-declarations": 2,
-    "quotes": ["error","double"],
-    "indentation": ["warning",4],
-    "imports-on-top": 2
-  }
+struct Records {
+    bool providedName;
+    string name;
+    address patient;
+    address hospital;
+    uint256 admissionDate;
+    uint256 dischargeDate;
+    uint256 visitReason;
 }
+
+mapping (address => bool) public isHospital;
+/// @dev Allows a patient to add their name to the record in the network.
+/// @param _recordID ID of the patient specific record.
+/// @param _name Name for the patient
+function addName(uint256 _recordID, string _name)
+    public
+    patientExist(msg.sender)
+    onlyPatient(_recordID)
+    recordExists(_recordID, msg.sender)
+    notEmpty(_name)
+    patientNotProvidedName(_recordID, msg.sender)
+{
+    records[_recordID][msg.sender].providedName = true;
+    records[_recordID][msg.sender].name = _name;
+    address hostpitalInRecord = records[_recordID][msg.sender].hospital;
+    mappingByName[hostpitalInRecord][_name] += 1;
+
+    payPatient(msg.sender);
+
+    emit NameAddedToRecords(_recordID, msg.sender);
+}
+/// @dev pays a patient for providing their name.
+/// @param _patientAddress to receive tokens.
+function payPatient(address _patientAddress)
+  private
+  notNull(_patientAddress)
+{
+  patientToken.transfer(_patientAddress, tokenRewardAmount);
+  emit PatientPaid(_patientAddress);
+}
+function getRecord(uint _recordID, address _patientAddress)
+  public
+  recordExists(_recordID, _patientAddress)
+  patientProvidedName(_recordID, _patientAddress)
+  onlyHospital(_recordID, _patientAddress)
+  view {...}
+/// @dev Allows a Hospital to view the number of records for a patient.
+/// @param _name Name for the patient
+function getRecordByName(string _name)
+  public
+  hospitalExist(msg.sender)
+  view
+  returns (uint256 numberOfRecords)
+  {
+    if (mappingByName[msg.sender][_name] != 0) {
+      numberOfRecords = mappingByName[msg.sender][_name];
+      return numberOfRecords;
+    }
+    else
+      return 0;
+  }
+/// @dev Allows a Hospital to view the number of patients on a given date range.
+/// @param from Starting date
+/// @param to Ending date
+function getCurrentPatients(uint from, uint to)
+  public
+  hospitalExist(msg.sender)
+  view
+  returns (uint _numberOfPatients)
+{
+  uint i;
+  _numberOfPatients = 0;
+  for(i=0; i<recordCount; i++) {
+    if(dateRanges[i].admissionDate >= from && dateRanges[i].dischargeDate <= to)
+      _numberOfPatients += 1;
+    }
+}
+ 
+Doctor Functionalities
+ function getrecord(address _p, uint _rid) public checkde(msg.sender) view returns(string memory _rec ){
+return(patient_list[_p].recordlist[_rid].pres); }
+function getpatient(address _p) public checkde(msg.sender) view returns( uint256 _age, string memory _gender){
+return(patient_list[_p].age,
+patient_list[_p].gender); }
+function getrecordnum (address _p) public checkde(msg.sender) view returns( uint256 _rn){
+return patient_list[_p].recn; }
+function addpres( address _p, string memory _pres) public checkde(msg.sender ) recordexist(_p,msg.sender){
+patient_list[_p].recordlist[patient_list[_p].recn].pres=_pres; 
+}
+function addrecord(address _p,address _d,uint256 _adm, uint256 _dis ) public hospitalexists(msg.sender){
+patient_list[_p].recn++; patient_list[_p].recordlist[patient_list[_p].recn].hospital=msg.sender; patient_list[_p].recordlist[patient_list[_p].recn].doctor=_d; patient_list[_p].recordlist[patient_list[_p].recn].admissionDate=_adm; patient_list[_p].recordlist[patient_list[_p].recn].dischargeDate=_dis;
+}
+function addcustomer(address _c) public icompexists(msg.sender){ insurancec_list[msg.sender].iscustomer[_c]=true; isinsured[_c]=true;
+}
+function removecustomer(address _c) public icustomer(msg.sender , _c){
+insurancec_list[msg.sender].iscustomer[_c]=false;
+isinsured[_c]=false; 
+}
+function getrecordi(address _c) public payrequire (msg.sender,_c) view returns(string memory _pres, string memory _bill) {
+return( patient_list[_c].recordlist[ilist[_c][msg.sender]].pres, patient_list[_c].recordlist[ilist[_c][msg.sender]].bill
+); }
+function inspayment(address _c) public payrequire (msg.sender,_c) payable{ (bool status ,)=_c.call{value:msg.value}("");
+require(status ,"Transaction Unsucessful"); insurancec_list[msg.sender].flagraised[_c]=false;
+}
+function getrecordp(address _c) public isall(_c,msg.sender) view returns( string memory _pres) {
+return( patient_list[_c].recordlist[permlist[_c][msg.sender].recid].pres
+); }
+function setbill(address _c, string memory _bill) public isall(_c,msg.sender ){
+patient_list[_c].recordlist[permlist[_c][msg.sender].recid].bill=_bill;
+permlist[_c][msg.sender].all=false;
+}
+modifier checkp(address _p){ require(!ispatient[_p],"Already Registered"); _;
+}
+modifier checkpe(address _p){
+require(ispatient[_p],"Not Registered");
+_; }
+modifier recexist(address _p, uint256 n) {
+require(n<=patient_list[msg.sender].recn,"Not Valid");
+_; }
+modifier allowins(address _i) {
+require(isinsured[_i],"Don’t Have Insurance");
+_; }
+modifier checkd(address _d){ require(!isdoctor[_d],"Already Registered"); _;
+}
+modifier checkde(address _d){
+require(isdoctor[_d],"Not Registered");
+_; }
+modifier hospitalreg(address _h){ require(!reghospital[_h],"Already Registered"); _;
+}
+modifier hospitalexists(address _h){
+require(reghospital[_h],"Not Registered");
+_; }
+modifier recordexist(address _p, address _d){ require(patient_list[_p].recordlist[patient_list[_p].recn].doctor==_d,"
+Record Don’t Exist"); _;
+}
+modifier icompreg(address _i){
+require(!reginsurance[_i],"Already Registered");
+_; }
+modifier icompexists(address _i){ require(reginsurance[_i],"Not Registered"); _;
+}
+modifier icustomer(address _i, address _c){
+require(insurancec_list[_i].iscustomer[_c]=true,"Not a customer");
+_; }
+modifier payrequire(address _i, address _c){ require(insurancec_list[_i].flagraised[_c], "Request Not Raised"); _;
+}
+modifier phcompreg(address _i){
+require(!regpharmacy[_i],"Already Registered");
+_; }
+modifier phcompexists(address _i){ require(regpharmacy[_i],"Not Registered"); _;
+}
+modifier isall(address _c, address _ph) {
+require(permlist[_c][_ph].all,"Not Allowed");
+_;
